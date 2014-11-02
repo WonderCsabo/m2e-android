@@ -15,7 +15,7 @@
   <packaging>eclipse-test-plugin</packaging>
 
   <properties>
-    <vmargs>-XX:MaxPermSize=1024m -Xmx1024m</vmargs>
+    <vmargs>-XX:MaxPermSize=1024m -Xmx2048m</vmargs>
   </properties>
 
   <profiles>
