@@ -50,6 +50,7 @@ before_script:
   - sudo service memcached stop
   - export DISPLAY=:99.0
   - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME > ~/.android/ddms.cfg
+  - chmod 777 ~/.android/ddms.cfg
 
 script: mvn -e --file me.gladwell.eclipse.m2e.android.test/pom.xml -Dtarget.platform=$TARGET_PLATFORM -Dtycho.showEclipseLog=true verify
 
