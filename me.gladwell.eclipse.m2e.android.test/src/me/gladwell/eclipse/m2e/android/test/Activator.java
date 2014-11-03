@@ -43,43 +43,16 @@ public class Activator extends AbstractUIPlugin implements IStartup {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
-        DdmsPreferenceStore prefStore = new DdmsPreferenceStore();
-        AdtPrefs.getPrefs().setSdkLocation(new File(System.getenv("ANDROID_HOME")));
-        prefStore.setPingTime("hello", System.currentTimeMillis());
-        Log.warn("adtUsed" + prefStore.isAdtUsed());
-        Log.warn("pingId" + prefStore.getPingId());
-        prefStore.setLastSdkPath(System.getenv("ANDROID_HOME"));
-        prefStore.setAdtUsed(true);
-        prefStore.generateNewPingId();
-        
-        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-        
+    
         final IWorkbench workbench = PlatformUI.getWorkbench();
         final Shell[] shells = workbench.getDisplay().getShells();
-        
-        workbench.getDisplay().timerExec(2000, new Runnable() {
-            @Override
-            public void run() {
-                @SuppressWarnings("unused")
-                final Shell lastShell = findLastShell(workbench.getDisplay().getShells(), shells);
-
+        for (Shell shell2 : shells) {
+            if (shell2.getText().contains("Welcome to Android Development")) {
+                System.out.println(shell2);
+                shell2.close();
             }
-            
-            private Shell findLastShell(Shell[] currentShells, Shell[] oldShells) {
-                CheckNext: for (final Shell cs : currentShells) {
-                    for (final Shell os : oldShells) {
-                        if (os == cs) {
-                            continue CheckNext;
-                        }
-                    }
-                    return cs;
-                }
-                return null;
-            }
-        });
+        }
     }
-    
-    
     
 
     /**
