@@ -36,13 +36,9 @@ before_install:
   - git config --global user.email "travis@travis-ci.org"
   - git config --global user.name "Travis"
   - git clone --quiet https://WonderCsabo:${GH_TOKEN}@github.com/WonderCsabo/hello.git > /dev/null
-  - git checkout -b $TRAVIS_BUILD_ID.$TRAVIS_BUILD_NUMBER
-  
+
   # start windowing session
   - sh -e /etc/init.d/xvfb start
-  - import -display :99 -window root hello/screenshot.png
-  - chmod +x hello.sh
-  - ./hello.sh &
 
 before_script:
   - sudo service postgresql stop
@@ -51,14 +47,11 @@ before_script:
   - export DISPLAY=:99.0
   - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME > ~/.android/ddms.cfg
   - chmod 777 ~/.android/ddms.cfg
+  - chmod +x hello.sh
+  - ./hello.sh &
 
 script: mvn -e --file me.gladwell.eclipse.m2e.android.test/pom.xml -Dtarget.platform=$TARGET_PLATFORM -Dtycho.showEclipseLog=true verify
 
 after_success:
   - if [[ "$TARGET_PLATFORM" == "luna" ]]; then mvn -Dgithub.global.oauth2Token=$GITHUB_AUTH_TOKEN -pl me.gladwell.eclipse.m2e.android.update com.github.github:site-maven-plugin:site; fi
 
-after_failure:
-  - cd hello
-  - git add .
-  - git commit -m "screenshots"
-  - git push -u origin $TRAVIS_BUILD_ID.$TRAVIS_BUILD_NUMBER
