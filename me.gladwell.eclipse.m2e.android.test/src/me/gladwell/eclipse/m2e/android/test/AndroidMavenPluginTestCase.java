@@ -14,16 +14,19 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 
 import me.gladwell.eclipse.m2e.android.AndroidMavenPlugin;
 import me.gladwell.eclipse.m2e.android.Log;
 import me.gladwell.eclipse.m2e.android.configuration.ProjectConfigurationException;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -39,12 +42,17 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.MavenModelManager;
+import org.eclipse.m2e.core.internal.MavenPluginActivator;
+import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingFactory;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectImportResult;
 import org.eclipse.m2e.core.project.MavenProjectInfo;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.m2e.core.project.ResolverConfiguration;
+import org.eclipse.m2e.jdt.MavenJdtPlugin;
+import org.eclipse.m2e.jdt.internal.BuildPathManager;
 import org.eclipse.m2e.tests.common.AbstractMavenProjectTestCase;
+import org.eclipse.m2e.tests.common.FilexWagon;
 import org.eclipse.m2e.tests.common.JobHelpers;
 import org.eclipse.m2e.tests.common.WorkspaceHelpers;
 import org.eclipse.m2e.tests.common.JobHelpers.IJobMatcher;
@@ -57,10 +65,66 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
     static final int MAXIMUM_SECONDS_TO_LOAD_ADT = 120;
 
     protected AndroidMavenPlugin plugin;
+    
+    
+    protected void superSetup() throws Exception {
+        System.out.println("TEST-SETUP: " + getName());
+
+        //super.setUp();
+
+        Log.warn("getting workspace");
+        workspace = ResourcesPlugin.getWorkspace();
+        IWorkspaceDescription description = workspace.getDescription();
+        description.setAutoBuilding(false);
+        workspace.setDescription(description);
+
+        Log.warn("getting java options");
+        // lets not assume we've got subversion in the target platform 
+        Hashtable<String, String> options = JavaCore.getOptions();
+        options.put(JavaCore.CORE_JAVA_BUILD_RESOURCE_COPY_FILTER, ".svn/");
+        JavaCore.setOptions(options);
+
+        Log.warn("sleep projectrefreshjob");
+        projectRefreshJob = MavenPluginActivator.getDefault().getProjectManagerRefreshJob();
+        projectRefreshJob.sleep();
+
+        Log.warn("sleep downloadsoruces");
+        downloadSourcesJob = ((BuildPathManager) MavenJdtPlugin.getDefault().getBuildpathManager()).getDownloadSourcesJob();
+        downloadSourcesJob.sleep();
+
+        mavenConfiguration = MavenPlugin.getMavenConfiguration();
+
+        Log.warn("starting copy settings.xml");
+        String oldUserSettingsFile = mavenConfiguration.getUserSettingsFile();
+        File settings = new File("settings.xml").getCanonicalFile();
+        if(settings.canRead()) {
+          String userSettingsFile = settings.getAbsolutePath();
+          System.out.println("Setting user settings file: " + userSettingsFile);
+          mavenConfiguration.setUserSettingsFile(userSettingsFile);
+        }
+
+        Log.warn("getting local repo");
+        ArtifactRepository localRepository = MavenPlugin.getMaven().getLocalRepository();
+        if(localRepository != null) {
+          repo = new File(localRepository.getBasedir());
+        } else {
+          fail("Cannot determine local repository path");
+        }
+
+        // make sure all tests use default metadata by default
+        LifecycleMappingFactory.setUseDefaultLifecycleMappingMetadataSource(true);
+        LifecycleMappingFactory.setDefaultLifecycleMappingMetadataSource(null);
+
+        Log.warn("clean workspace");
+        WorkspaceHelpers.cleanWorkspace();
+        FilexWagon.setRequestFailPattern(null);
+        FilexWagon.setRequestFilterPattern(null, true);
+    }
+    
 
     @Override
     protected void setUp() throws Exception {
-        super.setUp();
+        superSetup();
 
         plugin = AndroidMavenPlugin.getDefault();
         plugin.getInjector().injectMembers(this);
