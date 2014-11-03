@@ -43,15 +43,9 @@ public class Activator extends AbstractUIPlugin implements IStartup {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
-    
-        final IWorkbench workbench = PlatformUI.getWorkbench();
-        final Shell[] shells = workbench.getDisplay().getShells();
-        for (Shell shell2 : shells) {
-            if (shell2.getText().contains("Welcome to Android Development")) {
-                System.out.println(shell2);
-                shell2.close();
-            }
-        }
+        
+        DdmsPreferenceStore store = new DdmsPreferenceStore();
+        Log.warn(Long.toString(store.getPingId()));
     }
     
 
