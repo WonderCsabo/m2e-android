@@ -37,6 +37,9 @@ before_install:
   - sh -e /etc/init.d/xvfb start
 
 before_script:
+  - sudo service postgresql stop
+  - sudo service mysql stop
+  - sudo service memcached stop
   - export DISPLAY=:99.0
   - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME > ~/.android/ddms.cfg
 
