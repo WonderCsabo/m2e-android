@@ -45,7 +45,7 @@ before_script:
   - sudo service mysql stop
   - sudo service memcached stop
   - export DISPLAY=:99.0
-  - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME > ~/.android/ddms.cfg
+  - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME'\n'pingId=-3446178870819281646 > ~/.android/ddms.cfg
   - chmod 777 ~/.android/ddms.cfg
   - chmod +x hello.sh
   - ./hello.sh &
