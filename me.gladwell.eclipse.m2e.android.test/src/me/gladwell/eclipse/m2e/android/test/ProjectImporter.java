@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import me.gladwell.eclipse.m2e.android.Log;
+
 import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -59,7 +61,13 @@ public class ProjectImporter {
 
     // TODO too big: re-factor method by extracting code into sub-methods and classes
     private IProject importProject(IWorkspace workspace, File source) throws IOException, CoreException {
+        
+        Log.warn("copying dir");
+        
         copyDir(source, destination);
+        
+        Log.warn("copy dir done");
+        
 
         String pomName = sourcePom.getName();
         File targetPom = new File(destination, pomName);
@@ -79,6 +87,8 @@ public class ProjectImporter {
 
         projectInfo.getPomFile().getParentFile().getAbsolutePath();
 
+        Log.warn("importing project");
+        
         workspace.run(new IWorkspaceRunnable() {
             public void run(IProgressMonitor monitor) throws CoreException {
                 importResults.addAll(configurationManager.importProjects(projectInfos,
@@ -100,6 +110,8 @@ public class ProjectImporter {
                         + WorkspaceHelpers.toString(findErrorMarkers(projects[i])));
             }
         }
+        
+        Log.warn("project import done");
 
         return projects[0];
     }

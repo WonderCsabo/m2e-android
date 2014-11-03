@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import me.gladwell.eclipse.m2e.android.AndroidMavenPlugin;
+import me.gladwell.eclipse.m2e.android.Log;
 import me.gladwell.eclipse.m2e.android.configuration.ProjectConfigurationException;
 
 import org.apache.maven.model.Model;
@@ -64,7 +65,11 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
         plugin = AndroidMavenPlugin.getDefault();
         plugin.getInjector().injectMembers(this);
 
+        Log.warn("started to wait for ADT");
+        
         waitForAdtToLoad();
+        
+        Log.warn("ADT has been loaded");
     }
 
     protected void waitForAdtToLoad() throws InterruptedException, Exception {
@@ -87,9 +92,14 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
      */
     @Deprecated
     protected IProject importAndroidProject(String name) throws Exception {
+        Log.warn("importing project");
         IProject project = importProject("projects" + separator + name + separator + "pom.xml");
+        Log.warn("project imported");
+        Log.warn("waiting for jobs after project imported");
         waitForJobsToComplete();
+        Log.warn("waiting for ADT after project imported");
         waitForAdtToLoad();
+        Log.warn("project imported and everything is done");
         return project;
     }
 
