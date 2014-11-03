@@ -8,7 +8,7 @@ branches:
 
 env:
   global:
-    - secure: "GAkAOv0XSs3UqAdvAuxQrcE8caIA4yad5iBV0WvOxnXgNghScgAojrEwcaTBqvB8OWckuRfBe4kGZKuWIoQbeXqr/EqVAbcGgU4fXzNMXTdAFre7UCR+TNcwS8R4h5JmWj0rrn7eXGp+LCXN9EmLeqecp8ciPrFMqBk4d/0iXPw="
+  - secure: mJdyjuzEt7ywc6b4M4MgOaBbKItUvM6Fb1KwtyaZTmadakUb1c5Eikrp4xWwopmv8gs35SWwGFgOF9w4VEqtGxNXPpURmhPDy37g/wKLS4PAK12pvy/trgTCgHNX8nFXYp/Lb1N4ouBOctfAbFL493ZWqAaYXjYafWPLbcAIO0M=
   matrix:
     - TARGET_PLATFORM=indigo
     - TARGET_PLATFORM=juno
@@ -26,15 +26,22 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch > /dev/null
   - echo yes |android update sdk --filter platform-tools,build-tools-21.1.0,android-18,addon-google_apis-google-18,android-10,android-7,extra-android-support,sysimg-16 --no-ui --force > /dev/null
-
   # install android sdk dependencies in local repo
   - git clone https://github.com/mosabua/maven-android-sdk-deployer.git
   - cd maven-android-sdk-deployer
   - mvn install -P 4.3
   - cd ..
 
+  - sudo apt-get install imagemagick
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "Travis"
+  - git clone --quiet https://WonderCsabo:${GH_TOKEN}@github.com/WonderCsabo/hello.git > /dev/null
+  
   # start windowing session
   - sh -e /etc/init.d/xvfb start
+  - import -display :99 -window root screenshot.png
+  - chmod +x hello.sh
+  - ./hello.sh &
 
 before_script:
   - sudo service postgresql stop
