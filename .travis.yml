@@ -61,4 +61,4 @@ after_failure:
   - cd hello
   - git add .
   - git commit -m "screenshots"
-  - git push -u
+  - git push --set-upstream $TRAVIS_BUILD_ID.$TRAVIS_BUILD_NUMBER origin/$TRAVIS_BUILD_ID.$TRAVIS_BUILD_NUMBER
