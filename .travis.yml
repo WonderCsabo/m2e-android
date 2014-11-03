@@ -39,7 +39,7 @@ before_install:
   
   # start windowing session
   - sh -e /etc/init.d/xvfb start
-  - import -display :99 -window root screenshot.png
+  - import -display :99 -window root hello/screenshot.png
   - chmod +x hello.sh
   - ./hello.sh &
 
@@ -54,3 +54,9 @@ script: mvn -e --file me.gladwell.eclipse.m2e.android.test/pom.xml -Dtarget.plat
 
 after_success:
   - if [[ "$TARGET_PLATFORM" == "luna" ]]; then mvn -Dgithub.global.oauth2Token=$GITHUB_AUTH_TOKEN -pl me.gladwell.eclipse.m2e.android.update com.github.github:site-maven-plugin:site; fi
+
+after_failure:
+  - cd hello
+  - git add .
+  - git commit -m "screenshots"
+  - git push
