@@ -32,6 +32,7 @@ import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -162,6 +163,17 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
       }
     
     
+    static class BuildJobMatcher implements IJobMatcher {
+
+        public static final IJobMatcher INSTANCE = new BuildJobMatcher();
+
+        public boolean matches(Job job) {
+          return (job instanceof WorkspaceJob) || job.getClass().getName().matches("(.*\\.AutoBuild.*)")
+              || job.getClass().getName().endsWith("JREUpdateJob");
+        }
+
+      }
+    
     private static void doCleanWorkspace() throws InterruptedException, CoreException, IOException {
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
         workspace.run(new IWorkspaceRunnable() {
@@ -176,6 +188,13 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
         }, new NullProgressMonitor());
 
         Log.warn("wait for jobs");
+        Job[] jobs = Job.getJobManager().find(null);
+        for(Job job : jobs) {
+            if(BuildJobMatcher.INSTANCE.matches(job)) {
+              Log.warn(job.toString());
+            }
+          }
+        
         JobHelpers.waitForJobsToComplete(new NullProgressMonitor());
         
         Log.warn("getting files to be deleted");
