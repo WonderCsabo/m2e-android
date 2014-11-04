@@ -13,6 +13,7 @@ import static java.io.File.separator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -23,6 +24,7 @@ import me.gladwell.eclipse.m2e.android.configuration.ProjectConfigurationExcepti
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Model;
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -32,7 +34,11 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathAttribute;
 import org.eclipse.jdt.core.IClasspathContainer;
@@ -42,6 +48,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.MavenModelManager;
+import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.internal.MavenPluginActivator;
 import org.eclipse.m2e.core.internal.lifecyclemapping.LifecycleMappingFactory;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
@@ -116,11 +123,80 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
         LifecycleMappingFactory.setDefaultLifecycleMappingMetadataSource(null);
 
         Log.warn("clean workspace");
-        WorkspaceHelpers.cleanWorkspace();
+        cleanWorkspace();
+        Log.warn("clean workspace done");
         FilexWagon.setRequestFailPattern(null);
         FilexWagon.setRequestFilterPattern(null, true);
+        Log.warn("superSetup done");
     }
     
+    public static void cleanWorkspace() throws InterruptedException, CoreException {
+        Exception cause = null;
+        int i;
+        for(i = 0; i < 10; i++ ) {
+          try {
+              Log.warn("gc");
+            System.gc();
+            Log.warn("clean workspace " + i);
+            doCleanWorkspace();
+          } catch(InterruptedException e) {
+            throw e;
+          } catch(OperationCanceledException e) {
+            throw e;
+          } catch(Exception e) {
+            cause = e;
+            e.printStackTrace();
+            System.out.println(i);
+            Thread.sleep(6 * 1000);
+            continue;
+          }
+
+          // all clear
+          return;
+        }
+
+        // must be a timeout
+        throw new CoreException(new Status(IStatus.ERROR, IMavenConstants.PLUGIN_ID,
+            "Could not delete workspace resources (after " + i + " retries): "
+                + Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects()), cause));
+      }
+    
+    
+    private static void doCleanWorkspace() throws InterruptedException, CoreException, IOException {
+        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        workspace.run(new IWorkspaceRunnable() {
+          public void run(IProgressMonitor monitor) throws CoreException {
+              Log.warn("getting projectes to be deleted");
+            IProject[] projects = workspace.getRoot().getProjects();
+            for(int i = 0; i < projects.length; i++ ) {
+                Log.warn("delete project " + projects[i]);
+              projects[i].delete(true, true, monitor);
+            }
+          }
+        }, new NullProgressMonitor());
+
+        Log.warn("wait for jobs");
+        JobHelpers.waitForJobsToComplete(new NullProgressMonitor());
+        
+        Log.warn("getting files to be deleted");
+        File[] files = workspace.getRoot().getLocation().toFile().listFiles();
+        Log.warn("files" + Arrays.toString(files));
+        if(files != null) {
+          for(File file : files) {
+            if(!".metadata".equals(file.getName())) {
+              if(file.isDirectory()) {
+                  Log.warn("delete directory" + file);
+                FileUtils.deleteDirectory(file);
+              } else {
+                  Log.warn("delete file" + file);
+                if(!file.delete()) {
+                  throw new IOException("Could not delete file " + file.getCanonicalPath());
+                }
+              }
+            }
+          }
+        }
+      }
 
     @Override
     protected void setUp() throws Exception {
