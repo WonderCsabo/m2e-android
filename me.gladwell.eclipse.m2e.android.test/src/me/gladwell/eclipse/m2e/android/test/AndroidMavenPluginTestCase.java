@@ -163,17 +163,6 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
       }
     
     
-    static class BuildJobMatcher implements IJobMatcher {
-
-        public static final IJobMatcher INSTANCE = new BuildJobMatcher();
-
-        public boolean matches(Job job) {
-          return (job instanceof WorkspaceJob) || job.getClass().getName().matches("(.*\\.AutoBuild.*)")
-              || job.getClass().getName().endsWith("JREUpdateJob");
-        }
-
-      }
-    
     private static void doCleanWorkspace() throws InterruptedException, CoreException, IOException {
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
         workspace.run(new IWorkspaceRunnable() {
@@ -190,10 +179,8 @@ public abstract class AndroidMavenPluginTestCase extends AbstractMavenProjectTes
         Log.warn("wait for jobs");
         Job[] jobs = Job.getJobManager().find(null);
         for(Job job : jobs) {
-            if(BuildJobMatcher.INSTANCE.matches(job)) {
               Log.warn(job.toString());
-            }
-          }
+        }
         
         JobHelpers.waitForJobsToComplete(new NullProgressMonitor());
         
