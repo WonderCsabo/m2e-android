@@ -48,7 +48,7 @@ before_script:
   - echo adtUsed=true$'\n'lastSdkPath=$ANDROID_HOME$'\n'pingId=844 > ~/.android/ddms.cfg
   - chmod 777 ~/.android/ddms.cfg
   - chmod +x hello.sh
-  - ./hello.sh &
+ # - ./hello.sh &
 
 script: mvn -e --file me.gladwell.eclipse.m2e.android.test/pom.xml -Dtarget.platform=$TARGET_PLATFORM -Dtycho.showEclipseLog=true verify
 
