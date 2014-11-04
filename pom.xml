@@ -145,13 +145,13 @@
         <configuration>
           <maxRank>14</maxRank>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
+<!--         <executions> -->
+<!--           <execution> -->
+<!--             <goals> -->
+<!--               <goal>check</goal> -->
+<!--             </goals> -->
+<!--           </execution> -->
+<!--         </executions> -->
       </plugin>
     </plugins>
 
