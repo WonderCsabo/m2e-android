@@ -66,7 +66,7 @@ public class AndroidMavenProjectConfigurator extends AbstractProjectConfigurator
                     .getProject());
 
             if (mavenProject.isAndroidProject()) {
-                javaProjectConfigurator.configure(request, monitor);
+                //javaProjectConfigurator.configure(request, monitor);
 
                 for (WorkspaceConfigurer configurer : workspaceConfigurers) {
                     try {
